@@ -1,5 +1,5 @@
 const endpoints = {
-    posts: "posts"
+    posts: "posts/"
 }
 
 export default endpoints

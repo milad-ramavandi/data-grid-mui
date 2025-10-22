@@ -16,13 +16,14 @@ export const deletePost = async (id: number) => {
 };
 
 export const createPost = async (data: IPost) => {
-  await api(`${endpoints.posts}`, {
+  const res = await api(`${endpoints.posts}`, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
     },
   });
+  return res
 };
 
 export const editPost = async (data: IPost) => {

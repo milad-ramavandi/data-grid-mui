@@ -4,29 +4,28 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { IPost } from "../../types";
 import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import { useDeleteUser, useGetUsers } from "../../hooks/queries/users";
 import CircularProgress from "@mui/material/CircularProgress";
 import useModal from "../../hooks/useModal";
 import Modal from "@mui/material/Modal";
-import PostForm from "../post-form";
 import Button from "@mui/material/Button";
-import { faLocaleText } from "../../utils";
-
-
+import { faLocaleText, formatNumber } from "../../utils";
+import FormTemplate from "../templates/form-template";
 
 const DataGridComponent = () => {
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("create");
-  const [selectedUser, setSelectedUser] = useState<IPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<IPost | null>(null);
   const { isOpenModal, handleCloseModal, handleOpenModal } = useModal();
   const { data, isLoading } = useGetUsers(page, pageSize);
   const rows = data?.map((user: IPost, index: number) => {
     return {
       id: index,
-      row: user.id,
+      row: formatNumber(user.id as string),
       title: user.title,
       body: user.body,
     };
@@ -42,13 +41,13 @@ const DataGridComponent = () => {
 
   const handleEditClick = (user: IPost) => {
     handleOpenModal();
-    setSelectedUser(user);
+    setSelectedPost(user);
     setMode("edit");
   };
 
   const handleCreateClick = () => {
     handleOpenModal();
-    setSelectedUser(null);
+    setSelectedPost(null);
     setMode("create");
   };
 
@@ -83,30 +82,49 @@ const DataGridComponent = () => {
     },
   ];
   return (
-    <Stack direction={"column"} spacing={2}>
-      <Button onClick={handleCreateClick} className="w-20">
-        ایجاد پست
-      </Button>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        loading={isLoading}
-        rowCount={500}
-        paginationMode="server"
-        paginationModel={{ page: page - 1, pageSize }}
-        onPaginationModelChange={(model) => {
-          setPage(model.page + 1);
-          setPageSize(model.pageSize);
+    <Stack
+      width={"100vw"}
+      height={"100vh"}
+      display={"flex"}
+      alignItems={"center"}
+      justifyContent={"center"}
+      padding={3}
+    >
+      <Box
+        sx={{
+          height: 400,
+          width: {sm:"100%", md:"90%", lg:1000},
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
         }}
-        pageSizeOptions={[5, 10, 20]}
-        localeText={faLocaleText}
-      />
+      >
+        <Box>
+          <Button onClick={handleCreateClick} variant={"contained"}>
+            ایجاد پست
+          </Button>
+        </Box>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          loading={isLoading}
+          rowCount={500}
+          paginationMode="server"
+          paginationModel={{ page: page - 1, pageSize }}
+          onPaginationModelChange={(model) => {
+            setPage(model.page + 1);
+            setPageSize(model.pageSize);
+          }}
+          pageSizeOptions={[5, 10, 20]}
+          localeText={faLocaleText}
+        />
+      </Box>
       <Modal
         open={isOpenModal}
         onClose={handleCloseModal}
         className="flex items-center justify-center"
       >
-        <PostForm onClose={handleCloseModal} user={selectedUser} mode={mode} />
+        <FormTemplate onClose={handleCloseModal} post={selectedPost} mode={mode} />
       </Modal>
     </Stack>
   );

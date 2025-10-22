@@ -11,7 +11,7 @@ export const cacheRtl = createCache({
 
 
 // قالب‌بندی امن عددها به فارسی
-const formatNumber = (value: number | string) => {
+export const formatNumber = (value: number | string) => {
   try {
     const num = Number(value);
     if (Number.isNaN(num)) return String(value);
@@ -48,6 +48,20 @@ export const faLocaleText: Partial<GridLocaleText> = {
   // pagination
   paginationRowsPerPage: 'تعداد ردیف در هر صفحه',
   paginationDisplayedRows,
+  paginationItemAriaLabel: (type) => {
+    if (type === 'first') {
+      return 'رفتن به اولین صفحه';
+    }
+    if (type === 'last') {
+      return 'رفتن به آخرین صفحه';
+    }
+    if (type === 'next') {
+      return 'رفتن به صفحه‌ی بعدی';
+    }
+    // if (type === 'previous') {
+    return 'رفتن به صفحه‌ی قبلی';
+  },
+
 
   // footer / selection
   footerRowSelected: (count: number) => `${formatNumber(count)} ردیف انتخاب‌شده`,
