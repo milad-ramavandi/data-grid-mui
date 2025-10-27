@@ -3,8 +3,16 @@ import type { IPost } from "../../types";
 import endpoints from "../configs/endpoints";
 
 export const getPosts = async (page: number, pageSize: number) => {
+  const searchParams = new URLSearchParams();
+  if (page) {
+    searchParams.append("_start", `${page}`)
+  }
+  if (pageSize) {
+    searchParams.append("_limit", `${pageSize}`);
+  }
+
   const users = await api(
-    `${endpoints.posts}?_start=${page}&_limit=${pageSize}`
+    `${endpoints.posts}${searchParams && `?${searchParams}`}`
   );
   return users;
 };

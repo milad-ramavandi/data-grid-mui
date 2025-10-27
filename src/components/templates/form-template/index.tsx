@@ -1,89 +1,39 @@
-import { useEffect } from "react";
-import { useCreateUser, useEditUser } from "../../../hooks/queries/users";
-import type { IPost } from "../../../types";
-import TextField from "@mui/material/TextField";
-import Stack from "@mui/material/Stack";
-import Button from "@mui/material/Button";
-import { useFormik } from "formik";
+import { useFormik, type FormikErrors, type FormikTouched } from "formik";
 import * as Yup from "yup";
+import type { JSX } from "react";
 
-interface Props {
-  onClose: () => void;
-  mode: "create" | "edit";
-  post?: IPost | null;
+interface RenderFormProps<T> {
+  values: T;
+  touched: FormikTouched<T>;
+  errors: FormikErrors<T>;
+  isSubmitting:boolean,
+  getFieldProps: (name: string) => Yup.AnyObject;
+  setFieldValue: (field: string, value: any, shouldValidate?: boolean) => Promise<void> | Promise<FormikErrors<T>>,
+  setFieldTouched: (field: string, touched?: boolean, shouldValidate?: boolean) => Promise<void> | Promise<FormikErrors<T>>
+  handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void,
+  
 }
 
-const initialValues: IPost = {
-  title: "",
-  body: "",
-};
+interface Props<T extends Yup.AnyObject> {
+  initialValues: T;
+  validationSchema: Yup.ObjectSchema<T>;
+  onSubmit: (values: T) => Promise<void>;
+  render: (form: RenderFormProps<T>) => JSX.Element
+}
 
-const schema = Yup.object().shape({
-  title: Yup.string().required("Required"),
-  body: Yup.string().required("Required"),
-});
-
-const FormTemplate = ({ onClose, mode, post }: Props) => {
-  const onSubmit = async (values: IPost) => {
-    if (mode === "create") {
-      const data = await createMutation.mutateAsync({ ...values });
-      console.log(data);
-    } else if (mode === "edit" && post) {
-      await editMutation.mutateAsync({ id: post.id, ...values });
-    }
-    onClose();
-  };
-
-  const { touched, errors, getFieldProps, setFieldValue, handleSubmit } = useFormik({
+const FormTemplate = <T extends Yup.AnyObject>({
+  initialValues,
+  validationSchema,
+  onSubmit,
+  render,
+}: Props<T>) => {
+  const formik = useFormik({
     initialValues,
-    validationSchema: schema,
+    validationSchema,
     onSubmit,
   });
 
-  const createMutation = useCreateUser();
-  const editMutation = useEditUser();
-
-  useEffect(() => {
-    if (mode === "edit" && post) {
-      setFieldValue("title", post.title);
-      setFieldValue("body", post.body);
-    }
-  }, [mode, post]);
-
-  return (
-    <div className="space-y-3 bg-gray-300 w-[600px] p-2 rounded-lg">
-      <form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="عنوان"
-          margin="normal"
-          {...getFieldProps("title")}
-          error={(touched.title && errors.title) ? true : false}
-          helperText={touched.title && errors.title}
-        />
-        <TextField
-          fullWidth
-          label="توضیحات"
-          margin="normal"
-          {...getFieldProps("body")}
-          error={(touched.body && errors.body) ? true : false}
-          helperText={touched.body && errors.body}
-        />
-        <Stack direction={"row"} spacing={2}>
-          <Button onClick={onClose}>لغو</Button>
-          <Button
-            variant="contained"
-            type="submit"
-            loading={
-              (createMutation.isPending || editMutation.isPending) && true
-            }
-          >
-            {mode === "create" ? "ایجاد" : "ویرایش"}
-          </Button>
-        </Stack>
-      </form>
-    </div>
-  );
+  return render(formik);
 };
 
 export default FormTemplate;
