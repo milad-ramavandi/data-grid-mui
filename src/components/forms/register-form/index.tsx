@@ -14,6 +14,9 @@ import "dayjs/locale/fa";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Tooltip from "@mui/material/Tooltip";
 
 const genderOptions = [
   { value: "female", label: "زن" },
@@ -43,7 +46,7 @@ const validationSchema = Yup.object().shape({
     .email("ایمیل نا معتبر است")
     .required("وارد کردن ایمیل الزامی است"),
   gender: Yup.string()
-    .oneOf(["female", "male", "other"], "جنسیت نامعتبر است")
+    .oneOf(genderOptions.map((item) => item.value), "جنسیت نامعتبر است")
     .required("مشخص کردن جنسیت الزامی است"),
   birthDate: Yup.mixed<Dayjs>()
     .nullable()
@@ -51,7 +54,7 @@ const validationSchema = Yup.object().shape({
       if (!value) {
         return true;
       }
-      return dayjs(value).isValid();
+      return dayjs(value).isValid() && dayjs(value).isBefore(dayjs());
     })
     .required("وارد کردن تاریخ تولد الزامی است"),
   resume: Yup.mixed<File>()
@@ -95,7 +98,8 @@ const validationSchema = Yup.object().shape({
         }
         return validFileExtensions.image.includes(value.type);
       }
-    ).required("عکس پروفایل خود را انتخاب کنید"),
+    )
+    .required("عکس پروفایل خود را انتخاب کنید"),
 });
 
 const onSubmit = async (values: IRegisterFormInitialValues) => {
@@ -133,6 +137,7 @@ const RegisterForm = () => {
             if (file) {
               setFieldValue(fieldName, file);
             }
+            event.target.value = "";
           };
           return (
             <form onSubmit={handleSubmit} className="!space-y-2">
@@ -227,12 +232,15 @@ const RegisterForm = () => {
                   display={"flex"}
                   alignItems={"center"}
                   justifyContent={"space-between"}
+                  padding={"0 10px"}
+                  marginTop={2}
                 >
                   <Button
                     variant="outlined"
                     component="label"
                     startIcon={<CloudUploadIcon />}
                     onBlur={() => setFieldTouched("image", true)}
+                    disabled={values.image ? true : false}
                   >
                     انتخاب عکس پروفایل
                     <input
@@ -241,14 +249,27 @@ const RegisterForm = () => {
                       onChange={(e) => handleFileChange(e, "image")}
                     />
                   </Button>
-                  <Avatar
-                    src={
-                      values.image
-                        ? URL.createObjectURL(values.image)
-                        : undefined
-                    }
-                    sx={{ width: 80, height: 80, marginRight: "20px" }}
-                  />
+                  <Box position={"relative"} width={120} height={120}>
+                    {values.image && (
+                      <Tooltip title={"Delete Image"} placement={"right"}>
+                        <IconButton
+                          className="absolute top-0 left-7 z-50"
+                          onClick={() => setFieldValue("image", null)}
+                        >
+                          <DeleteIcon color={"error"} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Avatar
+                      src={
+                        values.image
+                          ? URL.createObjectURL(values.image)
+                          : undefined
+                      }
+                      sx={{ width: "100%", height: "100%" }}
+                      className="!absolute inset-0"
+                    />
+                  </Box>
                 </Box>
                 {touched.image && errors.image && (
                   <Typography color="error" variant={"subtitle2"}>
